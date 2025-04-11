@@ -1,0 +1,10 @@
+[db]
+host = "postgres"
+port = 5432
+database = "auth"
+user = "postgres"
+password = "1234"
+echo = true
+
+[API]
+DEBUG = true

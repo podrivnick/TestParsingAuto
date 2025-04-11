@@ -1,0 +1,18 @@
+services:
+  mongodb:
+    container_name: galery-mongodb
+    image: mongo:6-jammy
+    ports:
+      - '27017:27017'
+    volumes:
+      - dbdata6:/data/db
+      - ../data:/import
+    networks:
+      - backend
+
+volumes:
+  dbdata6:
+
+networks:
+  backend:
+    driver: bridge

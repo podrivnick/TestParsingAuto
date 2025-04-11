@@ -1,0 +1,27 @@
+services:
+  app:
+    build:
+      context: ../../TestParsingAuto/
+      dockerfile: Dockerfile
+    container_name: app
+    ports:
+      - "8000:8000"
+    expose:
+      - 8000
+    environment:
+      MONGO_DB_CONNECTION_URI: "mongodb://mongodb:27017"
+      KAFKA_URL: "kafka:29092"
+      MONGO_DB_ADMIN_USERNAME: "admin"
+      MONGO_DB_ADMIN_PASSWORD: "admin"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ../../TestParsingAuto:/TestParsingAuto
+    command: ["python", "-Om", "src"]
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge

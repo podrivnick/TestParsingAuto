@@ -5,6 +5,7 @@ from typing import (
 )
 
 import anyio
+from bson import ObjectId
 from src.infrastructure.db.config import BaseMongoDBRepository
 from src.infrastructure.db.services import (
     BaseCommandCarsMongoDBService,
@@ -39,6 +40,18 @@ class QueryCarsMongoDBService(BaseQueryCarsMongoDBService, BaseMongoDBRepository
         result = [doc async for doc in cursor]
 
         return result
+
+    async def get_car_by_id(
+        self,
+        id_car: str,
+    ) -> Dict:
+        try:
+            obj_id = ObjectId(id_car)
+        except Exception:
+            return None
+
+        document = await self._collection.find_one({"_id": obj_id})
+        return document
 
 
 @dataclass

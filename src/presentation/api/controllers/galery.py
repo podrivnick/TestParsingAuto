@@ -9,6 +9,7 @@ from fastapi.routing import APIRouter
 from punq import Container
 from src.application.cars.commands.cars import (
     GetAllCarsCommand,
+    GetCarByIdCommand,
     ParserCarsCommand,
 )
 from src.application.cars.dto.car import DTOAllCars
@@ -68,12 +69,41 @@ async def get_all_cars_handler(
     offset: int,
     container: Container = Depends(Stub(init_container)),
 ) -> SuccessResponse[List[CarSchema]]:
-    """Receiving All Cars.Parsing."""
+    """Receiving All Cars."""
     mediator: Mediator = container.resolve(Mediator)
 
     try:
         cars = await mediator.handle_command(
             GetAllCarsCommand(offset=offset),
+        )
+    except BaseAppException as exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": exception.message},
+        )
+
+    return SuccessResponse(result=cars)
+
+
+@router.get(
+    "/cars_id",
+    status_code=status.HTTP_201_CREATED,
+    description="API for getting car by id",
+    responses={
+        status.HTTP_201_CREATED: {"model": DTOAllCars},
+        status.HTTP_400_BAD_REQUEST: {"model": ErrorData},
+    },
+)
+async def get_car_by_id_handler(
+    id_car: str,
+    container: Container = Depends(Stub(init_container)),
+) -> SuccessResponse[List[CarSchema]]:
+    """Receiving Car by ID."""
+    mediator: Mediator = container.resolve(Mediator)
+
+    try:
+        cars = await mediator.handle_command(
+            GetCarByIdCommand(id_car=id_car),
         )
     except BaseAppException as exception:
         raise HTTPException(

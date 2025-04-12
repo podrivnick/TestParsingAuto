@@ -19,6 +19,10 @@ class BaseQueryCarsMongoDBService(ABC):
     async def get_all_cars(self, offset: int) -> Dict:
         raise NotImplementedError()
 
+    @abstractmethod
+    async def get_car_by_id(self, id_car: str) -> Dict:
+        raise NotImplementedError()
+
 
 @dataclass
 class BaseCommandCarsMongoDBService(ABC):

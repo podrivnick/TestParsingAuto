@@ -51,10 +51,31 @@ class GetAllCarsCommandHandler(CommandHandler[GetAllCarsCommand, DTOAllCars]):
     async def handle(
         self,
         command: GetAllCarsCommand,
-    ) -> List:
+    ) -> List[CarSchema]:
         cars = await self.query_get_all_cars_service.get_all_cars(
             offset=command.offset,
         )
         schemas_cars = [CarSchema(**car) for car in cars]
+
+        return schemas_cars
+
+
+@dataclass(frozen=True)
+class GetCarByIdCommand(BaseCommands):
+    id_car: str
+
+
+@dataclass(frozen=True)
+class GetCarByIdCommandHandler(CommandHandler[GetCarByIdCommand, DTOAllCars]):
+    query_get_car_by_id_service: BaseQueryCarsMongoDBService
+
+    async def handle(
+        self,
+        command: GetCarByIdCommand,
+    ) -> CarSchema:
+        car = await self.query_get_car_by_id_service.get_car_by_id(
+            id_car=command.id_car,
+        )
+        schemas_cars = CarSchema(**car)
 
         return schemas_cars

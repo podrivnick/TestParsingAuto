@@ -9,6 +9,8 @@ from punq import (
 from src.application.cars.commands.cars import (
     GetAllCarsCommand,
     GetAllCarsCommandHandler,
+    GetCarByIdCommand,
+    GetCarByIdCommandHandler,
     ParserCarsCommand,
     ParserCarsCommandHandler,
 )
@@ -97,6 +99,12 @@ def _initialize_container() -> Container:
             command_save_cars_service=container.resolve(BaseCommandCarsMongoDBService),
         )
 
+        # command handlers
+        getting_car_by_id_handler = GetCarByIdCommandHandler(
+            _mediator=mediator,
+            query_get_car_by_id_service=container.resolve(BaseQueryCarsMongoDBService),
+        )
+
         # commands
         mediator.register_command(
             GetAllCarsCommand,
@@ -107,6 +115,12 @@ def _initialize_container() -> Container:
         mediator.register_command(
             ParserCarsCommand,
             [parsing_all_cars_handler],
+        )
+
+        # commands
+        mediator.register_command(
+            GetCarByIdCommand,
+            [getting_car_by_id_handler],
         )
 
         return mediator

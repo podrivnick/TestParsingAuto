@@ -30,6 +30,9 @@ bs4 = "^0.0.2"
 selenium = "^4.31.0"
 undetected-chromedriver = "^3.5.5"
 packaging = "^24.2"
+aiojobs = "^1.4.0"
+chromedriver-autoinstaller = "^0.6.4"
+webdriver-manager = "^4.0.2"
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.8.0"

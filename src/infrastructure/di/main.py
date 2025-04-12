@@ -1,32 +1,25 @@
 from functools import lru_cache
-from uuid import uuid4
 
 from aiojobs import Scheduler
-from aiokafka import (
-    AIOKafkaConsumer,
-    AIOKafkaProducer,
-)
 from motor.motor_asyncio import AsyncIOMotorClient
 from punq import (
     Container,
     Scope,
 )
 from src.application.arts.commands.arts import (
-    GetRandomArtCommand,
-    GetRandomArtCommandHandler,
+    GetAllCarsCommand,
+    GetAllCarsCommandHandler,
+    ParserCarsCommand,
+    ParserCarsCommandHandler,
 )
-from src.application.arts.events.arts import GetRandomArtEventHandler
-from src.domain.arts.events.arts import GetRandomArtEvent
 from src.infrastructure.db.mongo import (
-    ArtMongoDBService,
+    CommandCarsMongoDBService,
+    QueryCarsMongoDBService,
+    QueryParserCarsMongoDBService,
 )
-from src.infrastructure.db.services import (
-    BaseArtMongoDBService,
-)
+from src.infrastructure.db.services import BaseCommandCarsMongoDBService
 from src.infrastructure.mediator.main import Mediator
 from src.infrastructure.mediator.sub_mediators.event import EventMediator
-from src.infrastructure.message_broker.base import BaseMessageBroker
-from src.infrastructure.message_broker.kafka import KafkaMessageBroker
 from src.settings.config import Config
 
 
@@ -55,48 +48,49 @@ def _initialize_container() -> Container:
     )
     client = container.resolve(AsyncIOMotorClient)
 
-    def init_mongodb_arts_service() -> BaseArtMongoDBService:
-        return ArtMongoDBService(
+    def init_mongodb_cars_service() -> BaseCommandCarsMongoDBService:
+        return CommandCarsMongoDBService(
             mongo_db_client=client,
             mongo_db_db_name=config.mongodb_galery_database,
-            mongo_db_collection=config.mongodb_arts_collection,
+            mongo_db_collection=config.mongodb_cars_collection,
         )
 
     container.register(
-        BaseArtMongoDBService,
-        factory=init_mongodb_arts_service,
+        BaseCommandCarsMongoDBService,
+        factory=init_mongodb_cars_service,
         scope=Scope.singleton,
     )
 
     # Handlers
-    container.register(GetRandomArtCommandHandler)
-
+    container.register(GetAllCarsCommandHandler)
+    container.register(ParserCarsCommandHandler)
 
     def init_mediator() -> Mediator:
         mediator = Mediator()
 
         # command handlers
-        get_random_art_handler = GetRandomArtCommandHandler(
+        get_all_cars_handler = GetAllCarsCommandHandler(
             _mediator=mediator,
-            arts_service=container.resolve(BaseArtMongoDBService),
+            query_get_all_cars_service=QueryCarsMongoDBService(),
         )
 
-        # event handlers
-        random_art_handler_event = GetRandomArtEventHandler(
-            broker_topic=config.recieved_random_art_topic,
-            message_broker=container.resolve(BaseMessageBroker),
-        )
-
-        # events
-        mediator.register_events(
-            GetRandomArtEvent,
-            [random_art_handler_event],
+        # command handlers
+        parsing_all_cars_handler = ParserCarsCommandHandler(
+            _mediator=mediator,
+            query_pasring_all_cars_service=QueryParserCarsMongoDBService(),
+            command_save_cars_service=container.resolve(BaseCommandCarsMongoDBService),
         )
 
         # commands
         mediator.register_command(
-            GetRandomArtCommand,
-            [get_random_art_handler],
+            GetAllCarsCommand,
+            [get_all_cars_handler],
+        )
+
+        # commands
+        mediator.register_command(
+            ParserCarsCommand,
+            [parsing_all_cars_handler],
         )
 
         return mediator

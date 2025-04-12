@@ -3,14 +3,25 @@ from abc import (
     abstractmethod,
 )
 from dataclasses import dataclass
-
-from src.domain.arts.entities.art import Art
-from src.domain.flowers.entities.flower import Flower
-from src.domain.poems.entities.poem import Poem
+from typing import Dict
 
 
 @dataclass
-class BaseArtMongoDBService(ABC):
+class BaseQueryParserCarsMongoDBService(ABC):
     @abstractmethod
-    async def get_random_art(self, art_direction: str) -> Art:
+    async def parser_cars_all_cars(self, offset: int) -> None:
+        raise NotImplementedError()
+
+
+@dataclass
+class BaseQueryCarsMongoDBService(ABC):
+    @abstractmethod
+    async def get_all_cars(self, offset: int) -> Dict:
+        raise NotImplementedError()
+
+
+@dataclass
+class BaseCommandCarsMongoDBService(ABC):
+    @abstractmethod
+    async def save_cars_to_mongo(self, cars: Dict) -> None:
         raise NotImplementedError()

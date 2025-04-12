@@ -1,38 +1,57 @@
 from dataclasses import dataclass
+from typing import (
+    Dict,
+    List,
+)
 
-from src.domain.arts.entities.art import Art
-from src.domain.flowers.entities.flower import Flower
-from src.domain.poems.entities.poem import Poem
+import anyio
 from src.infrastructure.db.config import BaseMongoDBRepository
-from src.infrastructure.db.convertors import (
-    convert_art_document_to_entity,
-    convert_flower_document_to_entity,
-    convert_poem_document_to_entity,
-)
 from src.infrastructure.db.services import (
-    BaseArtMongoDBService,
-    BaseFlowerMongoDBService,
-    BasePoemMongoDBService,
+    BaseCommandCarsMongoDBService,
+    BaseQueryCarsMongoDBService,
+    BaseQueryParserCarsMongoDBService,
 )
+from src.infrastructure.parser.parser_auto import parsing_olx_cars
 
 
 @dataclass
-class ArtMongoDBService(BaseArtMongoDBService, BaseMongoDBRepository):
-    async def get_random_art(
+class QueryParserCarsMongoDBService(BaseQueryParserCarsMongoDBService):
+    async def parser_cars_all_cars(
         self,
-        art_direction: str,
-    ) -> Art:
-        pipeline = [
-            {"$match": {"art_direction": art_direction}},
-            {"$sample": {"size": 1}},
-        ]
-        cursor = self._collection.aggregate(pipeline)
-
-        random_document = await cursor.to_list(length=1)
-        convert_art_document_to_entity(random_document[0])
-
-        return (
-            convert_art_document_to_entity(random_document[0])
-            if random_document
-            else None
+        offset: int,
+    ) -> Dict:
+        cars = await anyio.to_thread.run_sync(
+            parsing_olx_cars,
+            offset,
         )
+
+        return cars
+
+
+@dataclass
+class QueryCarsMongoDBService(BaseQueryCarsMongoDBService):
+    async def get_all_cars(
+        self,
+        offset: int,
+    ) -> Dict:
+        # TODO
+        cars = await anyio.to_thread.run_sync(
+            parsing_olx_cars,
+            offset,
+        )
+
+        return cars
+
+
+@dataclass
+class CommandCarsMongoDBService(BaseCommandCarsMongoDBService, BaseMongoDBRepository):
+    async def save_cars_to_mongo(
+        self,
+        car_list: List,
+    ) -> None:
+        for car in car_list:
+            self._collection.update_one(
+                car,
+                {"$set": car},
+                upsert=True,
+            )

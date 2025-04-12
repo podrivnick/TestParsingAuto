@@ -1,4 +1,3 @@
-import json
 import logging
 import re
 import time
@@ -7,6 +6,8 @@ from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 
 
 def init_driver():
@@ -14,10 +15,13 @@ def init_driver():
     options.add_argument("--headless")
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920,1080")
-
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--lang=uk")
 
-    driver = webdriver.Chrome(options=options)
+    # Используем webdriver-manager для автоматической загрузки нужной версии ChromeDriver
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=options)
 
     driver.execute_cdp_cmd("Network.enable", {})
 
@@ -40,13 +44,12 @@ def init_driver():
     return driver
 
 
-def parse_olx_autos(url: str, driver) -> list:
+def parse_olx_autos(url: str, driver, page: int = 1) -> list:
     logging.basicConfig(
         level=logging.DEBUG,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
     car_links = []
-    page = 1
 
     while True:
         if page == 2:
@@ -83,9 +86,9 @@ def parse_olx_autos(url: str, driver) -> list:
 
 
 def parsing_data_cars(url: str, driver) -> dict:
-    logging.info(f"Обрабатываем автомобиль: {url}")
+    logging.info(f"Обробляємо автомобіль: {url}")
     driver.get(url)
-    time.sleep(1)
+    time.sleep(2)
     soup = BeautifulSoup(driver.page_source, "html.parser")
     car_details = {}
 
@@ -136,13 +139,20 @@ def parsing_data_cars(url: str, driver) -> dict:
         else:
             city_el = location_block.find("p", class_="css-7wnksb")
             region_el = location_block.find("p", class_="css-2n34b3")
+            area_el = location_block.find("p", class_="css-z0m36u")
 
             city = city_el.get_text(strip=True) if city_el else ""
             region = region_el.get_text(strip=True) if region_el else ""
+            area = area_el.get_text(strip=True) if area_el else ""
 
-            full_location = ", ".join(filter(None, [city, region]))
+            parts = [part for part in [city, region, area] if part.strip()]
 
-            car_details["location"] = re.sub(r",(\S)", r", \1", full_location, count=1)
+            full_location = ", ".join(parts)
+
+            full_location = re.sub(r",\s*,", ",", full_location)
+            full_location = re.sub(r",\s*(\S)", r", \1", full_location)
+
+            car_details["location"] = full_location
 
         image_tag = soup.find("img", class_="css-1bmvjcs")
         if image_tag and image_tag.get("src"):
@@ -154,20 +164,19 @@ def parsing_data_cars(url: str, driver) -> dict:
     return car_details
 
 
-if __name__ == "__main__":
+def parsing_olx_cars(page: int):
     url = "https://www.olx.ua/uk/transport/legkovye-avtomobili/"
     driver = init_driver()
 
-    car_links = parse_olx_autos(url, driver)
+    car_links = parse_olx_autos(url, driver, page=page)
     logging.info(f"Found links: {len(car_links)}")
 
     car_list = []
-    for car_url in car_links:
+    for car_url in car_links[0:2]:
         details = parsing_data_cars(car_url, driver)
         if details:
             car_list.append(details)
 
     driver.quit()
 
-    json_output = json.dumps(car_list, ensure_ascii=False, indent=4)
-    print(json_output)
+    return car_list

@@ -7,11 +7,12 @@ from fastapi import (
 from fastapi.exceptions import HTTPException
 from fastapi.routing import APIRouter
 from punq import Container
-from src.application.arts.commands.arts import (
+from src.application.cars.commands.cars import (
     GetAllCarsCommand,
     ParserCarsCommand,
 )
-from src.application.arts.dto.car import DTOAllCars
+from src.application.cars.dto.car import DTOAllCars
+from src.application.cars.schemas.base import CarSchema
 from src.domain.common.exceptions.base import BaseAppException
 from src.infrastructure.di.main import init_container
 from src.infrastructure.mediator.main import Mediator
@@ -66,11 +67,8 @@ async def parsing_cars_handler(
 async def get_all_cars_handler(
     offset: int,
     container: Container = Depends(Stub(init_container)),
-) -> SuccessResponse[List[DTOAllCars]]:
-    """Receiving All Cars.
-
-    Parsing.
-    """
+) -> SuccessResponse[List[CarSchema]]:
+    """Receiving All Cars.Parsing."""
     mediator: Mediator = container.resolve(Mediator)
 
     try:

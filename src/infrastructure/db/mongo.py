@@ -29,18 +29,16 @@ class QueryParserCarsMongoDBService(BaseQueryParserCarsMongoDBService):
 
 
 @dataclass
-class QueryCarsMongoDBService(BaseQueryCarsMongoDBService):
+class QueryCarsMongoDBService(BaseQueryCarsMongoDBService, BaseMongoDBRepository):
     async def get_all_cars(
         self,
         offset: int,
     ) -> Dict:
         # TODO
-        cars = await anyio.to_thread.run_sync(
-            parsing_olx_cars,
-            offset,
-        )
+        cursor = self._collection.find().limit(offset)
+        result = [doc async for doc in cursor]
 
-        return cars
+        return result
 
 
 @dataclass

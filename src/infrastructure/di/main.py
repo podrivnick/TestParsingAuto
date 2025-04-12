@@ -6,7 +6,7 @@ from punq import (
     Container,
     Scope,
 )
-from src.application.arts.commands.arts import (
+from src.application.cars.commands.cars import (
     GetAllCarsCommand,
     GetAllCarsCommandHandler,
     ParserCarsCommand,
@@ -17,7 +17,10 @@ from src.infrastructure.db.mongo import (
     QueryCarsMongoDBService,
     QueryParserCarsMongoDBService,
 )
-from src.infrastructure.db.services import BaseCommandCarsMongoDBService
+from src.infrastructure.db.services import (
+    BaseCommandCarsMongoDBService,
+    BaseQueryCarsMongoDBService,
+)
 from src.infrastructure.mediator.main import Mediator
 from src.infrastructure.mediator.sub_mediators.event import EventMediator
 from src.settings.config import Config
@@ -55,9 +58,22 @@ def _initialize_container() -> Container:
             mongo_db_collection=config.mongodb_cars_collection,
         )
 
+    def init_mongodb_getting_cars_service() -> BaseQueryCarsMongoDBService:
+        return QueryCarsMongoDBService(
+            mongo_db_client=client,
+            mongo_db_db_name=config.mongodb_galery_database,
+            mongo_db_collection=config.mongodb_cars_collection,
+        )
+
     container.register(
         BaseCommandCarsMongoDBService,
         factory=init_mongodb_cars_service,
+        scope=Scope.singleton,
+    )
+
+    container.register(
+        BaseQueryCarsMongoDBService,
+        factory=init_mongodb_getting_cars_service,
         scope=Scope.singleton,
     )
 
@@ -71,7 +87,7 @@ def _initialize_container() -> Container:
         # command handlers
         get_all_cars_handler = GetAllCarsCommandHandler(
             _mediator=mediator,
-            query_get_all_cars_service=QueryCarsMongoDBService(),
+            query_get_all_cars_service=container.resolve(BaseQueryCarsMongoDBService),
         )
 
         # command handlers

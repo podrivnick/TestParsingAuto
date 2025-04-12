@@ -1,7 +1,11 @@
 from dataclasses import dataclass
-from typing import Dict
+from typing import (
+    Dict,
+    List,
+)
 
-from src.application.arts.dto.car import DTOAllCars
+from src.application.cars.dto.car import DTOAllCars
+from src.application.cars.schemas.base import CarSchema
 from src.domain.common.commands.base import BaseCommands
 from src.infrastructure.db.services import (
     BaseCommandCarsMongoDBService,
@@ -47,9 +51,10 @@ class GetAllCarsCommandHandler(CommandHandler[GetAllCarsCommand, DTOAllCars]):
     async def handle(
         self,
         command: GetAllCarsCommand,
-    ) -> Dict:
+    ) -> List:
         cars = await self.query_get_all_cars_service.get_all_cars(
             offset=command.offset,
         )
+        schemas_cars = [CarSchema(**car) for car in cars]
 
-        return cars
+        return schemas_cars

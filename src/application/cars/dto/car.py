@@ -11,14 +11,14 @@ from typing import (
 @dataclass(frozen=True)
 class DTOCars:
     mark: Optional[str] = field(default=None)
-    price: Optional[float] = field(default=None)
-    mileage: Optional[int] = field(default=None)
+    price: Optional[str] = field(default=None)
+    mileage: Optional[str] = field(default=None)
     model: Optional[str] = field(default=None)
     year_created: Optional[int] = field(default=None)
     engine_type: Optional[str] = field(default=None)
     gear_box: Optional[str] = field(default=None)
     drive_type: Optional[str] = field(default=None)
-    engine_capacity: Optional[float] = field(default=None)
+    engine_capacity: Optional[str] = field(default=None)
     location: Optional[str] = field(default=None)
     url_image: Optional[str] = field(default=None)
 

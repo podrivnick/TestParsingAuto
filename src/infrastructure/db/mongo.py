@@ -37,7 +37,7 @@ class QueryCarsMongoDBService(BaseQueryCarsMongoDBService, BaseMongoDBRepository
         self,
         offset: int,
     ) -> Dict:
-        cursor = await self._collection.find().limit(offset)
+        cursor = self._collection.find().limit(offset)
         result = [doc async for doc in cursor]
 
         return result
@@ -58,7 +58,7 @@ class QueryCarsMongoDBService(BaseQueryCarsMongoDBService, BaseMongoDBRepository
         self,
         mark: str,
     ) -> List[Dict]:
-        cursor = await self._collection.find(
+        cursor = self._collection.find(
             {
                 "mark": {"$regex": mark, "$options": "i"},
             },
@@ -74,7 +74,7 @@ class QueryCarsMongoDBService(BaseQueryCarsMongoDBService, BaseMongoDBRepository
         self,
         year: int,
     ) -> List[Dict]:
-        cursor = await self._collection.find({"year_created": int(year)})
+        cursor = self._collection.find({"year_created": int(year)})
 
         results = []
         async for doc in cursor:

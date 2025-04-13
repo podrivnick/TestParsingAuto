@@ -4,7 +4,7 @@ Test Project for parsing OLX and manipulate received data
 
 ## API's
 
-* `Get /sync` - parsing data from OLX (could be long)
+* `Get /sync` - parsing data from OLX. Recommend set 'offset'= 1 (Because the wait may be too long)
 * `Get /cars` - getting all cars
 * `Get /cars_id` - getting car by ID
 * `Get /cars_mark` - getting cars by Mark

@@ -40,3 +40,7 @@ class BaseCommandCarsMongoDBService(ABC):
     @abstractmethod
     async def save_cars_to_mongo(self, cars: Dict) -> None:
         raise NotImplementedError()
+
+    @abstractmethod
+    async def delete_car_from_mongo(self, car_id: str) -> None:
+        raise NotImplementedError()

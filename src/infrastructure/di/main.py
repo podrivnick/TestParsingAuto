@@ -7,6 +7,8 @@ from punq import (
     Scope,
 )
 from src.application.cars.commands.cars import (
+    DeletingCarByIDCommand,
+    DeletingCarByIDCommandHandler,
     GetAllCarsCommand,
     GetAllCarsCommandHandler,
     GetCarByIdCommand,
@@ -89,6 +91,7 @@ def _initialize_container() -> Container:
     container.register(GetCarByIdCommandHandler)
     container.register(GetCarsByMarkCommandHandler)
     container.register(GetCarsByYearCommandHandler)
+    container.register(DeletingCarByIDCommandHandler)
 
     def init_mediator() -> Mediator:
         mediator = Mediator()
@@ -127,6 +130,14 @@ def _initialize_container() -> Container:
             ),
         )
 
+        # command handlers
+        deleting_car_by_id_handler = DeletingCarByIDCommandHandler(
+            _mediator=mediator,
+            command_deleting_car_service=container.resolve(
+                BaseCommandCarsMongoDBService,
+            ),
+        )
+
         # commands
         mediator.register_command(
             GetAllCarsCommand,
@@ -155,6 +166,12 @@ def _initialize_container() -> Container:
         mediator.register_command(
             GetCarsByYearCommand,
             [getting_cars_by_year_handler],
+        )
+
+        # commands
+        mediator.register_command(
+            DeletingCarByIDCommand,
+            [deleting_car_by_id_handler],
         )
 
         return mediator

@@ -8,6 +8,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.routing import APIRouter
 from punq import Container
 from src.application.cars.commands.cars import (
+    DeletingCarByIDCommand,
     GetAllCarsCommand,
     GetCarByIdCommand,
     GetCarsByMarkCommand,
@@ -172,3 +173,33 @@ async def get_car_by_year_handler(
         )
 
     return SuccessResponse(result=cars)
+
+
+@router.delete(
+    "/car_delete",
+    status_code=status.HTTP_201_CREATED,
+    description="API deleting car by ID",
+    responses={
+        status.HTTP_201_CREATED: {"model": DTOAllCars},
+        status.HTTP_400_BAD_REQUEST: {"model": ErrorData},
+    },
+)
+async def delete_car_by_id_handler(
+    car_id: str,
+    container: Container = Depends(Stub(init_container)),
+) -> SuccessResponse[List[CarSchema]]:
+    """Deleting Car By ID."""
+    mediator: Mediator = container.resolve(Mediator)
+
+    try:
+        is_car_deleted = await mediator.handle_command(
+            DeletingCarByIDCommand(car_id=car_id),
+        )
+    except BaseAppException as exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": exception.message},
+        )
+
+    if is_car_deleted:
+        return SuccessResponse(result="Car Succesfully Deleted")

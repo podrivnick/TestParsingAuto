@@ -6,6 +6,7 @@ from typing import (
 
 from src.application.cars.dto.car import DTOAllCars
 from src.application.cars.schemas.base import CarSchema
+from src.domain.cars.exceptions.car import IncorrectIDExceptions
 from src.domain.common.commands.base import BaseCommands
 from src.infrastructure.db.services import (
     BaseCommandCarsMongoDBService,
@@ -121,3 +122,26 @@ class GetCarsByYearCommandHandler(CommandHandler[GetCarsByYearCommand, DTOAllCar
         schemas_cars = [CarSchema(**car) for car in cars]
 
         return schemas_cars
+
+
+@dataclass(frozen=True)
+class DeletingCarByIDCommand(BaseCommands):
+    car_id: str
+
+
+@dataclass(frozen=True)
+class DeletingCarByIDCommandHandler(CommandHandler[DeletingCarByIDCommand, DTOAllCars]):
+    command_deleting_car_service: BaseCommandCarsMongoDBService
+
+    async def handle(
+        self,
+        command: DeletingCarByIDCommand,
+    ) -> bool:
+        try:
+            result = await self.command_deleting_car_service.delete_car_from_mongo(
+                car_id=command.car_id,
+            )
+        except Exception:
+            raise IncorrectIDExceptions()
+
+        return result

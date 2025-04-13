@@ -94,3 +94,12 @@ class CommandCarsMongoDBService(BaseCommandCarsMongoDBService, BaseMongoDBReposi
                 {"$set": car},
                 upsert=True,
             )
+
+    async def delete_car_from_mongo(
+        self,
+        car_id: str,
+    ) -> None:
+        obj_id = ObjectId(car_id)
+
+        result = await self._collection.delete_one({"_id": obj_id})
+        return result.deleted_count > 0

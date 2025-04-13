@@ -15,9 +15,13 @@ from src.application.cars.commands.cars import (
     GetCarsByMarkCommand,
     GetCarsByYearCommand,
     ParserCarsCommand,
+    PuttingCarCommand,
 )
 from src.application.cars.dto.car import DTOCars
-from src.application.cars.schemas.base import CarSchema
+from src.application.cars.schemas.base import (
+    CarSchema,
+    CarUpdateSchema,
+)
 from src.domain.common.exceptions.base import BaseAppException
 from src.infrastructure.di.main import init_container
 from src.infrastructure.mediator.main import Mediator
@@ -234,3 +238,37 @@ async def create_car_handler(
 
     if is_car_deleted:
         return SuccessResponse(result="Car Succesfully Added")
+
+
+@router.put(
+    "/car_put",
+    status_code=status.HTTP_201_CREATED,
+    description="API creating car",
+    responses={
+        status.HTTP_201_CREATED: {"model": DTOCars},
+        status.HTTP_400_BAD_REQUEST: {"model": ErrorData},
+    },
+)
+async def put_car_handler(
+    car_id: str,
+    car_data: CarUpdateSchema,
+    container: Container = Depends(Stub(init_container)),
+) -> SuccessResponse[List[CarSchema]]:
+    """Creating Car."""
+    mediator: Mediator = container.resolve(Mediator)
+
+    try:
+        is_car_deleted = await mediator.handle_command(
+            PuttingCarCommand(
+                car_id=car_id,
+                car_data=car_data,
+            ),
+        )
+    except BaseAppException as exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": exception.message},
+        )
+
+    if is_car_deleted:
+        return SuccessResponse(result="Car Succesfully Changed")

@@ -37,7 +37,6 @@ class QueryCarsMongoDBService(BaseQueryCarsMongoDBService, BaseMongoDBRepository
         self,
         offset: int,
     ) -> Dict:
-        # TODO
         cursor = await self._collection.find().limit(offset)
         result = [doc async for doc in cursor]
 
@@ -114,6 +113,19 @@ class CommandCarsMongoDBService(BaseCommandCarsMongoDBService, BaseMongoDBReposi
 
         result = await self._collection.delete_one({"_id": obj_id})
         return result.deleted_count > 0
+
+    async def putting_car_mongo(
+        self,
+        car_id: str,
+        car_data: Dict,
+    ) -> None:
+        obj_id = ObjectId(car_id)
+
+        await self._collection.update_one(
+            {"_id": obj_id},
+            {"$set": car_data},
+            upsert=False,
+        )
 
 
 @dataclass

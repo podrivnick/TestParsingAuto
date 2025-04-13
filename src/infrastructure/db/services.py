@@ -45,6 +45,14 @@ class BaseCommandCarsMongoDBService(ABC):
     async def delete_car_from_mongo(self, car_id: str) -> None:
         raise NotImplementedError()
 
+    @abstractmethod
+    async def putting_car_mongo(
+        self,
+        car_id: str,
+        car_data: Dict,
+    ) -> None:
+        raise NotImplementedError()
+
 
 @dataclass
 class BaseCommandCarsParserMongoDBService(ABC):

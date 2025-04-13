@@ -4,8 +4,12 @@ from typing import (
     List,
 )
 
+from fastapi import HTTPException
 from src.application.cars.dto.car import DTOCars
-from src.application.cars.schemas.base import CarSchema
+from src.application.cars.schemas.base import (
+    CarSchema,
+    CarUpdateSchema,
+)
 from src.domain.cars.exceptions.car import IncorrectIDExceptions
 from src.domain.common.commands.base import BaseCommands
 from src.infrastructure.db.services import (
@@ -164,3 +168,42 @@ class CreatingCarCommandHandler(CommandHandler[CreatingCarCommand, DTOCars]):
         await self.command_creating_car_service.save_car_from_user(
             car=command.car_schema.to_dict(),
         )
+
+
+@dataclass(frozen=True)
+class PuttingCarCommand(BaseCommands):
+    car_id: str
+    car_data: CarUpdateSchema
+
+
+@dataclass(frozen=True)
+class PuttingCarCommandHandler(CommandHandler[PuttingCarCommand, DTOCars]):
+    query_putting_car_service: BaseQueryCarsMongoDBService
+    command_putting_car_service: BaseCommandCarsMongoDBService
+
+    async def handle(
+        self,
+        command: PuttingCarCommand,
+    ) -> bool:
+        is_car_existing = await self.query_putting_car_service.get_car_by_id(
+            id_car=command.car_id,
+        )
+
+        if not is_car_existing:
+            raise HTTPException(status_code=400, detail="Object Not Exist.")
+
+        update_fields = self.get_real_update_fields(command.car_data)
+        if not update_fields:
+            # If nothing to update
+            raise HTTPException(status_code=400, detail="No Data For Update.")
+
+        await self.command_putting_car_service.putting_car_mongo(
+            car_id=command.car_id,
+            car_data=update_fields,
+        )
+
+    @staticmethod
+    def get_real_update_fields(car_data: CarUpdateSchema) -> dict:
+        return {
+            k: v for k, v in car_data.dict().items() if v not in [None, "string", 0]
+        }

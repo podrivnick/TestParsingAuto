@@ -8,6 +8,7 @@ from typing import (
 )
 
 from bson import ObjectId
+from pydantic import BaseModel
 
 
 def str_objectid(obj: ObjectId) -> str:
@@ -48,3 +49,17 @@ class CarSchema:
             "url_image": self.url_image,
             "gear_box": self.gear_box,
         }
+
+
+class CarUpdateSchema(BaseModel):
+    mark: Optional[str] = None
+    model: Optional[str] = None
+    year_created: Optional[int] = None
+    price: Optional[str] = None
+    mileage: Optional[str] = None
+    engine_type: Optional[str] = None
+    engine_capacity: Optional[str] = None
+    gear_box: Optional[str] = None
+    drive_type: Optional[str] = None
+    location: Optional[str] = None
+    url_image: Optional[str] = None

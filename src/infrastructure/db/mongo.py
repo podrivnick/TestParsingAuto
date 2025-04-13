@@ -82,6 +82,24 @@ class QueryCarsMongoDBService(BaseQueryCarsMongoDBService, BaseMongoDBRepository
 
         return results
 
+    async def filter_cars(
+        self,
+        year: int,
+        price: int,
+        mileage: int,
+    ) -> List[Dict]:
+        query = {
+            "year_created": {"$gte": year},
+            "price_numeric": {"$lte": price},
+            "mileage_numeric": {"$lte": mileage},
+        }
+
+        cursor = self._collection.find(query)
+
+        result = await cursor.to_list(length=None)
+
+        return result
+
 
 @dataclass
 class CommandCarsMongoDBService(BaseCommandCarsMongoDBService, BaseMongoDBRepository):

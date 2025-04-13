@@ -7,6 +7,10 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from src.infrastructure.parser.utils import (
+    parse_mileage,
+    parse_price,
+)
 from webdriver_manager.chrome import ChromeDriverManager
 
 
@@ -89,7 +93,7 @@ def parse_olx_autos(url: str, driver, offset: int = 1) -> list:
 def parsing_data_cars(url: str, driver) -> dict:
     logging.info(f"Обробляємо автомобіль: {url}")
     driver.get(url)
-    time.sleep(1.4)
+    time.sleep(1)
     soup = BeautifulSoup(driver.page_source, "html.parser")
     car_details = {}
 
@@ -102,6 +106,9 @@ def parsing_data_cars(url: str, driver) -> dict:
         price_tag = soup.find("h3", class_="css-fqcbii")
         if price_tag:
             car_details["price"] = price_tag.get_text(strip=True)
+            car_details["price_numeric"] = parse_price(
+                price_str=price_tag.get_text(strip=True),
+            )
 
         # Details Car
         for p in soup.find_all("p", class_="css-1los5bp"):
@@ -116,6 +123,7 @@ def parsing_data_cars(url: str, driver) -> dict:
                 km = text.split(":")[-1].strip().lower()
                 try:
                     car_details["mileage"] = km
+                    car_details["mileage_numeric"] = parse_mileage(km)
                 except ValueError:
                     pass
 

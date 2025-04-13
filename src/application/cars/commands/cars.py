@@ -207,3 +207,28 @@ class PuttingCarCommandHandler(CommandHandler[PuttingCarCommand, DTOCars]):
         return {
             k: v for k, v in car_data.dict().items() if v not in [None, "string", 0]
         }
+
+
+@dataclass(frozen=True)
+class FilterCarsCommand(BaseCommands):
+    price: str
+    year: int
+    mileage: str
+
+
+@dataclass(frozen=True)
+class FilterCarsCommandHandler(CommandHandler[FilterCarsCommand, DTOCars]):
+    query_filter_cars_service: BaseQueryCarsMongoDBService
+
+    async def handle(
+        self,
+        command: FilterCarsCommand,
+    ) -> CarSchema:
+        cars = await self.query_filter_cars_service.filter_cars(
+            year=command.year,
+            price=command.price,
+            mileage=command.mileage,
+        )
+        schemas_cars = [CarSchema(**car) for car in cars]
+
+        return schemas_cars

@@ -29,6 +29,8 @@ class CarSchema:
     drive_type: Optional[str] = field(default=None)
     location: Optional[str] = field(default=None)
     url_image: Optional[str] = field(default=None)
+    mileage_numeric: Optional[int] = field(default=None)
+    price_numeric: Optional[int] = field(default=None)
 
     def __post_init__(self):
         if isinstance(self._id, ObjectId):
@@ -48,6 +50,8 @@ class CarSchema:
             "location": self.location,
             "url_image": self.url_image,
             "gear_box": self.gear_box,
+            "mileage_numeric": self.gear_box,
+            "price_numeric": self.gear_box,
         }
 
 

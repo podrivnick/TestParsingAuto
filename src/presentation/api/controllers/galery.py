@@ -10,6 +10,7 @@ from punq import Container
 from src.application.cars.commands.cars import (
     CreatingCarCommand,
     DeletingCarByIDCommand,
+    FilterCarsCommand,
     GetAllCarsCommand,
     GetCarByIdCommand,
     GetCarsByMarkCommand,
@@ -38,7 +39,7 @@ router = APIRouter(tags=["Auto Galery"])
 @router.get(
     "/sync",
     status_code=status.HTTP_201_CREATED,
-    description="API Parser All Cars From OLX",
+    description="API Parser All Cars From OLX. RECOMMEND SET 'OFFSET'=1 FOR NOT WAITING TOO LONG",
     responses={
         status.HTTP_201_CREATED: {"model": DTOCars},
         status.HTTP_400_BAD_REQUEST: {"model": ErrorData},
@@ -272,3 +273,38 @@ async def put_car_handler(
 
     if is_car_deleted:
         return SuccessResponse(result="Car Succesfully Changed")
+
+
+@router.get(
+    "/cars_filter",
+    status_code=status.HTTP_201_CREATED,
+    description="API for filter cars",
+    responses={
+        status.HTTP_201_CREATED: {"model": DTOCars},
+        status.HTTP_400_BAD_REQUEST: {"model": ErrorData},
+    },
+)
+async def filter_cars_handler(
+    less_price: int,
+    larger_year: int,
+    larger_mileage: int,
+    container: Container = Depends(Stub(init_container)),
+) -> SuccessResponse[List[CarSchema]]:
+    """Filtering Cars."""
+    mediator: Mediator = container.resolve(Mediator)
+
+    try:
+        cars = await mediator.handle_command(
+            FilterCarsCommand(
+                price=less_price,
+                year=larger_year,
+                mileage=larger_mileage,
+            ),
+        )
+    except BaseAppException as exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": exception.message},
+        )
+
+    return SuccessResponse(result=cars)

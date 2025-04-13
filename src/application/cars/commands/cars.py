@@ -100,3 +100,24 @@ class GetCarsByMarkCommandHandler(CommandHandler[GetCarsByMarkCommand, DTOAllCar
         schemas_cars = [CarSchema(**car) for car in cars]
 
         return schemas_cars
+
+
+@dataclass(frozen=True)
+class GetCarsByYearCommand(BaseCommands):
+    year: int
+
+
+@dataclass(frozen=True)
+class GetCarsByYearCommandHandler(CommandHandler[GetCarsByYearCommand, DTOAllCars]):
+    query_get_cars_by_year_service: BaseQueryCarsMongoDBService
+
+    async def handle(
+        self,
+        command: GetCarsByYearCommand,
+    ) -> CarSchema:
+        cars = await self.query_get_cars_by_year_service.get_cars_by_year(
+            year=command.year,
+        )
+        schemas_cars = [CarSchema(**car) for car in cars]
+
+        return schemas_cars

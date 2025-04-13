@@ -13,6 +13,8 @@ from src.application.cars.commands.cars import (
     GetCarByIdCommandHandler,
     GetCarsByMarkCommand,
     GetCarsByMarkCommandHandler,
+    GetCarsByYearCommand,
+    GetCarsByYearCommandHandler,
     ParserCarsCommand,
     ParserCarsCommandHandler,
 )
@@ -86,6 +88,7 @@ def _initialize_container() -> Container:
     container.register(ParserCarsCommandHandler)
     container.register(GetCarByIdCommandHandler)
     container.register(GetCarsByMarkCommandHandler)
+    container.register(GetCarsByYearCommandHandler)
 
     def init_mediator() -> Mediator:
         mediator = Mediator()
@@ -116,6 +119,13 @@ def _initialize_container() -> Container:
                 BaseQueryCarsMongoDBService,
             ),
         )
+        # command handlers
+        getting_cars_by_year_handler = GetCarsByYearCommandHandler(
+            _mediator=mediator,
+            query_get_cars_by_year_service=container.resolve(
+                BaseQueryCarsMongoDBService,
+            ),
+        )
 
         # commands
         mediator.register_command(
@@ -139,6 +149,12 @@ def _initialize_container() -> Container:
         mediator.register_command(
             GetCarsByMarkCommand,
             [getting_cars_by_mark_handler],
+        )
+
+        # commands
+        mediator.register_command(
+            GetCarsByYearCommand,
+            [getting_cars_by_year_handler],
         )
 
         return mediator

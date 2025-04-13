@@ -11,6 +11,7 @@ from src.application.cars.commands.cars import (
     GetAllCarsCommand,
     GetCarByIdCommand,
     GetCarsByMarkCommand,
+    GetCarsByYearCommand,
     ParserCarsCommand,
 )
 from src.application.cars.dto.car import DTOAllCars
@@ -134,6 +135,35 @@ async def get_cars_by_mark_handler(
     try:
         cars = await mediator.handle_command(
             GetCarsByMarkCommand(mark=mark),
+        )
+    except BaseAppException as exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": exception.message},
+        )
+
+    return SuccessResponse(result=cars)
+
+
+@router.get(
+    "/cars_year",
+    status_code=status.HTTP_201_CREATED,
+    description="API for getting cars by year",
+    responses={
+        status.HTTP_201_CREATED: {"model": DTOAllCars},
+        status.HTTP_400_BAD_REQUEST: {"model": ErrorData},
+    },
+)
+async def get_car_by_year_handler(
+    year: int,
+    container: Container = Depends(Stub(init_container)),
+) -> SuccessResponse[List[CarSchema]]:
+    """Receiving Cars by Year."""
+    mediator: Mediator = container.resolve(Mediator)
+
+    try:
+        cars = await mediator.handle_command(
+            GetCarsByYearCommand(year=year),
         )
     except BaseAppException as exception:
         raise HTTPException(

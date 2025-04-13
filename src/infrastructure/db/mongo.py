@@ -69,6 +69,18 @@ class QueryCarsMongoDBService(BaseQueryCarsMongoDBService, BaseMongoDBRepository
 
         return results
 
+    async def get_cars_by_year(
+        self,
+        year: int,
+    ) -> List[Dict]:
+        cursor = self._collection.find({"year_created": int(year)})
+
+        results = []
+        async for doc in cursor:
+            results.append(doc)
+
+        return results
+
 
 @dataclass
 class CommandCarsMongoDBService(BaseCommandCarsMongoDBService, BaseMongoDBRepository):

@@ -30,6 +30,10 @@ class BaseQueryCarsMongoDBService(ABC):
     async def get_cars_by_mark(self, mark: str) -> List[Dict]:
         raise NotImplementedError()
 
+    @abstractmethod
+    async def get_cars_by_year(self, year: int) -> List[Dict]:
+        raise NotImplementedError()
+
 
 @dataclass
 class BaseCommandCarsMongoDBService(ABC):

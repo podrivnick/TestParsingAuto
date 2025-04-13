@@ -9,7 +9,7 @@ from typing import (
 
 
 @dataclass(frozen=True)
-class DTOAllCars:
+class DTOCars:
     mark: Optional[str] = field(default=None)
     price: Optional[float] = field(default=None)
     mileage: Optional[int] = field(default=None)
@@ -24,7 +24,7 @@ class DTOAllCars:
 
     def to_dict(self) -> Dict:
         return {
-            "brand": self.brand,
+            "mark": self.mark,
             "model": self.model,
             "year_created": self.year_created,
             "price": self.price,

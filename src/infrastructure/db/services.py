@@ -38,9 +38,16 @@ class BaseQueryCarsMongoDBService(ABC):
 @dataclass
 class BaseCommandCarsMongoDBService(ABC):
     @abstractmethod
-    async def save_cars_to_mongo(self, cars: Dict) -> None:
+    async def save_car_from_user(self, cars: Dict) -> None:
         raise NotImplementedError()
 
     @abstractmethod
     async def delete_car_from_mongo(self, car_id: str) -> None:
+        raise NotImplementedError()
+
+
+@dataclass
+class BaseCommandCarsParserMongoDBService(ABC):
+    @abstractmethod
+    async def save_cars_from_parser(self, cars: Dict) -> None:
         raise NotImplementedError()

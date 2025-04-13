@@ -7,6 +7,8 @@ from punq import (
     Scope,
 )
 from src.application.cars.commands.cars import (
+    CreatingCarCommand,
+    CreatingCarCommandHandler,
     DeletingCarByIDCommand,
     DeletingCarByIDCommandHandler,
     GetAllCarsCommand,
@@ -22,11 +24,13 @@ from src.application.cars.commands.cars import (
 )
 from src.infrastructure.db.mongo import (
     CommandCarsMongoDBService,
+    CommandCarsParserMongoDBService,
     QueryCarsMongoDBService,
     QueryParserCarsMongoDBService,
 )
 from src.infrastructure.db.services import (
     BaseCommandCarsMongoDBService,
+    BaseCommandCarsParserMongoDBService,
     BaseQueryCarsMongoDBService,
 )
 from src.infrastructure.mediator.main import Mediator
@@ -59,6 +63,13 @@ def _initialize_container() -> Container:
     )
     client = container.resolve(AsyncIOMotorClient)
 
+    def init_mongodb_cars_from_parser_service() -> BaseCommandCarsParserMongoDBService:
+        return CommandCarsParserMongoDBService(
+            mongo_db_client=client,
+            mongo_db_db_name=config.mongodb_galery_database,
+            mongo_db_collection=config.mongodb_cars_collection,
+        )
+
     def init_mongodb_cars_service() -> BaseCommandCarsMongoDBService:
         return CommandCarsMongoDBService(
             mongo_db_client=client,
@@ -72,6 +83,12 @@ def _initialize_container() -> Container:
             mongo_db_db_name=config.mongodb_galery_database,
             mongo_db_collection=config.mongodb_cars_collection,
         )
+
+    container.register(
+        BaseCommandCarsParserMongoDBService,
+        factory=init_mongodb_cars_from_parser_service,
+        scope=Scope.singleton,
+    )
 
     container.register(
         BaseCommandCarsMongoDBService,
@@ -92,6 +109,7 @@ def _initialize_container() -> Container:
     container.register(GetCarsByMarkCommandHandler)
     container.register(GetCarsByYearCommandHandler)
     container.register(DeletingCarByIDCommandHandler)
+    container.register(CreatingCarCommandHandler)
 
     def init_mediator() -> Mediator:
         mediator = Mediator()
@@ -106,7 +124,9 @@ def _initialize_container() -> Container:
         parsing_all_cars_handler = ParserCarsCommandHandler(
             _mediator=mediator,
             query_pasring_all_cars_service=QueryParserCarsMongoDBService(),
-            command_save_cars_service=container.resolve(BaseCommandCarsMongoDBService),
+            command_save_cars_service=container.resolve(
+                BaseCommandCarsParserMongoDBService,
+            ),
         )
 
         # command handlers
@@ -134,6 +154,14 @@ def _initialize_container() -> Container:
         deleting_car_by_id_handler = DeletingCarByIDCommandHandler(
             _mediator=mediator,
             command_deleting_car_service=container.resolve(
+                BaseCommandCarsMongoDBService,
+            ),
+        )
+
+        # command handlers
+        creating_car_handler = CreatingCarCommandHandler(
+            _mediator=mediator,
+            command_creating_car_service=container.resolve(
                 BaseCommandCarsMongoDBService,
             ),
         )
@@ -172,6 +200,12 @@ def _initialize_container() -> Container:
         mediator.register_command(
             DeletingCarByIDCommand,
             [deleting_car_by_id_handler],
+        )
+
+        # commands
+        mediator.register_command(
+            CreatingCarCommand,
+            [creating_car_handler],
         )
 
         return mediator

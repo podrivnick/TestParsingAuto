@@ -8,6 +8,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.routing import APIRouter
 from punq import Container
 from src.application.cars.commands.cars import (
+    CreatingCarCommand,
     DeletingCarByIDCommand,
     GetAllCarsCommand,
     GetCarByIdCommand,
@@ -15,7 +16,7 @@ from src.application.cars.commands.cars import (
     GetCarsByYearCommand,
     ParserCarsCommand,
 )
-from src.application.cars.dto.car import DTOAllCars
+from src.application.cars.dto.car import DTOCars
 from src.application.cars.schemas.base import CarSchema
 from src.domain.common.exceptions.base import BaseAppException
 from src.infrastructure.di.main import init_container
@@ -35,14 +36,14 @@ router = APIRouter(tags=["Auto Galery"])
     status_code=status.HTTP_201_CREATED,
     description="API Parser All Cars From OLX",
     responses={
-        status.HTTP_201_CREATED: {"model": DTOAllCars},
+        status.HTTP_201_CREATED: {"model": DTOCars},
         status.HTTP_400_BAD_REQUEST: {"model": ErrorData},
     },
 )
 async def parsing_cars_handler(
     offset: int,
     container: Container = Depends(Stub(init_container)),
-) -> SuccessResponse[List[DTOAllCars]]:
+) -> SuccessResponse[List[DTOCars]]:
     """Parsing Cars."""
     mediator: Mediator = container.resolve(Mediator)
 
@@ -64,7 +65,7 @@ async def parsing_cars_handler(
     status_code=status.HTTP_201_CREATED,
     description="API for getting all machines using parsing",
     responses={
-        status.HTTP_201_CREATED: {"model": DTOAllCars},
+        status.HTTP_201_CREATED: {"model": DTOCars},
         status.HTTP_400_BAD_REQUEST: {"model": ErrorData},
     },
 )
@@ -93,7 +94,7 @@ async def get_all_cars_handler(
     status_code=status.HTTP_201_CREATED,
     description="API for getting car by id",
     responses={
-        status.HTTP_201_CREATED: {"model": DTOAllCars},
+        status.HTTP_201_CREATED: {"model": DTOCars},
         status.HTTP_400_BAD_REQUEST: {"model": ErrorData},
     },
 )
@@ -122,7 +123,7 @@ async def get_car_by_id_handler(
     status_code=status.HTTP_201_CREATED,
     description="API for getting cars by mark",
     responses={
-        status.HTTP_201_CREATED: {"model": DTOAllCars},
+        status.HTTP_201_CREATED: {"model": DTOCars},
         status.HTTP_400_BAD_REQUEST: {"model": ErrorData},
     },
 )
@@ -151,7 +152,7 @@ async def get_cars_by_mark_handler(
     status_code=status.HTTP_201_CREATED,
     description="API for getting cars by year",
     responses={
-        status.HTTP_201_CREATED: {"model": DTOAllCars},
+        status.HTTP_201_CREATED: {"model": DTOCars},
         status.HTTP_400_BAD_REQUEST: {"model": ErrorData},
     },
 )
@@ -180,7 +181,7 @@ async def get_car_by_year_handler(
     status_code=status.HTTP_201_CREATED,
     description="API deleting car by ID",
     responses={
-        status.HTTP_201_CREATED: {"model": DTOAllCars},
+        status.HTTP_201_CREATED: {"model": DTOCars},
         status.HTTP_400_BAD_REQUEST: {"model": ErrorData},
     },
 )
@@ -203,3 +204,33 @@ async def delete_car_by_id_handler(
 
     if is_car_deleted:
         return SuccessResponse(result="Car Succesfully Deleted")
+
+
+@router.post(
+    "/car_create",
+    status_code=status.HTTP_201_CREATED,
+    description="API creating car",
+    responses={
+        status.HTTP_201_CREATED: {"model": DTOCars},
+        status.HTTP_400_BAD_REQUEST: {"model": ErrorData},
+    },
+)
+async def create_car_handler(
+    car_schema: DTOCars,
+    container: Container = Depends(Stub(init_container)),
+) -> SuccessResponse[List[CarSchema]]:
+    """Creating Car."""
+    mediator: Mediator = container.resolve(Mediator)
+
+    try:
+        is_car_deleted = await mediator.handle_command(
+            CreatingCarCommand(car_schema=car_schema),
+        )
+    except BaseAppException as exception:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"error": exception.message},
+        )
+
+    if is_car_deleted:
+        return SuccessResponse(result="Car Succesfully Added")

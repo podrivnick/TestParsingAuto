@@ -21,3 +21,12 @@ class IncorrectIDExceptions(BaseCarException):
     @property
     def message(self) -> Optional[str]:
         return self.exception
+
+
+@dataclass(eq=False)
+class AlreadyExistOblectExceptions(BaseCarException):
+    exception: Optional[str] = field(default="Car Already In DataBase")
+
+    @property
+    def message(self) -> Optional[str]:
+        return self.exception

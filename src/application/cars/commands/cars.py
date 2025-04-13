@@ -4,12 +4,13 @@ from typing import (
     List,
 )
 
-from src.application.cars.dto.car import DTOAllCars
+from src.application.cars.dto.car import DTOCars
 from src.application.cars.schemas.base import CarSchema
 from src.domain.cars.exceptions.car import IncorrectIDExceptions
 from src.domain.common.commands.base import BaseCommands
 from src.infrastructure.db.services import (
     BaseCommandCarsMongoDBService,
+    BaseCommandCarsParserMongoDBService,
     BaseQueryCarsMongoDBService,
     BaseQueryParserCarsMongoDBService,
 )
@@ -22,9 +23,9 @@ class ParserCarsCommand(BaseCommands):
 
 
 @dataclass(frozen=True)
-class ParserCarsCommandHandler(CommandHandler[ParserCarsCommand, DTOAllCars]):
+class ParserCarsCommandHandler(CommandHandler[ParserCarsCommand, DTOCars]):
     query_pasring_all_cars_service: BaseQueryParserCarsMongoDBService
-    command_save_cars_service: BaseCommandCarsMongoDBService
+    command_save_cars_service: BaseCommandCarsParserMongoDBService
 
     async def handle(
         self,
@@ -35,7 +36,7 @@ class ParserCarsCommandHandler(CommandHandler[ParserCarsCommand, DTOAllCars]):
         )
         original_cars = cars.copy()
 
-        await self.command_save_cars_service.save_cars_to_mongo(cars)
+        await self.command_save_cars_service.save_cars_from_parser(cars)
 
         return original_cars
 
@@ -46,7 +47,7 @@ class GetAllCarsCommand(BaseCommands):
 
 
 @dataclass(frozen=True)
-class GetAllCarsCommandHandler(CommandHandler[GetAllCarsCommand, DTOAllCars]):
+class GetAllCarsCommandHandler(CommandHandler[GetAllCarsCommand, DTOCars]):
     query_get_all_cars_service: BaseQueryCarsMongoDBService
 
     async def handle(
@@ -67,7 +68,7 @@ class GetCarByIdCommand(BaseCommands):
 
 
 @dataclass(frozen=True)
-class GetCarByIdCommandHandler(CommandHandler[GetCarByIdCommand, DTOAllCars]):
+class GetCarByIdCommandHandler(CommandHandler[GetCarByIdCommand, DTOCars]):
     query_get_car_by_id_service: BaseQueryCarsMongoDBService
 
     async def handle(
@@ -88,7 +89,7 @@ class GetCarsByMarkCommand(BaseCommands):
 
 
 @dataclass(frozen=True)
-class GetCarsByMarkCommandHandler(CommandHandler[GetCarsByMarkCommand, DTOAllCars]):
+class GetCarsByMarkCommandHandler(CommandHandler[GetCarsByMarkCommand, DTOCars]):
     query_get_cars_by_mark_service: BaseQueryCarsMongoDBService
 
     async def handle(
@@ -109,7 +110,7 @@ class GetCarsByYearCommand(BaseCommands):
 
 
 @dataclass(frozen=True)
-class GetCarsByYearCommandHandler(CommandHandler[GetCarsByYearCommand, DTOAllCars]):
+class GetCarsByYearCommandHandler(CommandHandler[GetCarsByYearCommand, DTOCars]):
     query_get_cars_by_year_service: BaseQueryCarsMongoDBService
 
     async def handle(
@@ -130,7 +131,7 @@ class DeletingCarByIDCommand(BaseCommands):
 
 
 @dataclass(frozen=True)
-class DeletingCarByIDCommandHandler(CommandHandler[DeletingCarByIDCommand, DTOAllCars]):
+class DeletingCarByIDCommandHandler(CommandHandler[DeletingCarByIDCommand, DTOCars]):
     command_deleting_car_service: BaseCommandCarsMongoDBService
 
     async def handle(
@@ -145,3 +146,21 @@ class DeletingCarByIDCommandHandler(CommandHandler[DeletingCarByIDCommand, DTOAl
             raise IncorrectIDExceptions()
 
         return result
+
+
+@dataclass(frozen=True)
+class CreatingCarCommand(BaseCommands):
+    car_schema: DTOCars
+
+
+@dataclass(frozen=True)
+class CreatingCarCommandHandler(CommandHandler[CreatingCarCommand, DTOCars]):
+    command_creating_car_service: BaseCommandCarsMongoDBService
+
+    async def handle(
+        self,
+        command: CreatingCarCommand,
+    ) -> bool:
+        await self.command_creating_car_service.save_car_from_user(
+            car=command.car_schema.to_dict(),
+        )

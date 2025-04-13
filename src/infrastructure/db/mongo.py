@@ -6,9 +6,11 @@ from typing import (
 
 import anyio
 from bson import ObjectId
+from src.domain.cars.exceptions.car import AlreadyExistOblectExceptions
 from src.infrastructure.db.config import BaseMongoDBRepository
 from src.infrastructure.db.services import (
     BaseCommandCarsMongoDBService,
+    BaseCommandCarsParserMongoDBService,
     BaseQueryCarsMongoDBService,
     BaseQueryParserCarsMongoDBService,
 )
@@ -36,7 +38,7 @@ class QueryCarsMongoDBService(BaseQueryCarsMongoDBService, BaseMongoDBRepository
         offset: int,
     ) -> Dict:
         # TODO
-        cursor = self._collection.find().limit(offset)
+        cursor = await self._collection.find().limit(offset)
         result = [doc async for doc in cursor]
 
         return result
@@ -57,7 +59,7 @@ class QueryCarsMongoDBService(BaseQueryCarsMongoDBService, BaseMongoDBRepository
         self,
         mark: str,
     ) -> List[Dict]:
-        cursor = self._collection.find(
+        cursor = await self._collection.find(
             {
                 "mark": {"$regex": mark, "$options": "i"},
             },
@@ -73,7 +75,7 @@ class QueryCarsMongoDBService(BaseQueryCarsMongoDBService, BaseMongoDBRepository
         self,
         year: int,
     ) -> List[Dict]:
-        cursor = self._collection.find({"year_created": int(year)})
+        cursor = await self._collection.find({"year_created": int(year)})
 
         results = []
         async for doc in cursor:
@@ -84,15 +86,24 @@ class QueryCarsMongoDBService(BaseQueryCarsMongoDBService, BaseMongoDBRepository
 
 @dataclass
 class CommandCarsMongoDBService(BaseCommandCarsMongoDBService, BaseMongoDBRepository):
-    async def save_cars_to_mongo(
+    async def save_car_from_user(
         self,
-        car_list: List,
+        car: Dict,
     ) -> None:
-        for car in car_list:
-            self._collection.update_one(
-                car,
-                {"$set": car},
-                upsert=True,
+        """Зберігає список машин від користувача MongoDB.
+
+        Викидає AlreadyExistObjectExceptions, якщо об'єкт вже існує.
+        """
+        result = await self._collection.update_one(
+            car,
+            {"$set": car},
+            upsert=True,
+        )
+
+        raw = result.raw_result
+        if raw.get("updatedExisting", False) is True:
+            raise AlreadyExistOblectExceptions(
+                "Car already exists with identical fields.",
             )
 
     async def delete_car_from_mongo(
@@ -103,3 +114,20 @@ class CommandCarsMongoDBService(BaseCommandCarsMongoDBService, BaseMongoDBReposi
 
         result = await self._collection.delete_one({"_id": obj_id})
         return result.deleted_count > 0
+
+
+@dataclass
+class CommandCarsParserMongoDBService(
+    BaseCommandCarsParserMongoDBService,
+    BaseMongoDBRepository,
+):
+    async def save_cars_from_parser(
+        self,
+        car_list: List,
+    ) -> None:
+        for car in car_list:
+            await self._collection.update_one(
+                car,
+                {"$set": car},
+                upsert=True,
+            )

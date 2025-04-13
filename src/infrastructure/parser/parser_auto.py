@@ -44,19 +44,20 @@ def init_driver():
     return driver
 
 
-def parse_olx_autos(url: str, driver, page: int = 1) -> list:
+def parse_olx_autos(url: str, driver, offset: int = 1) -> list:
     logging.basicConfig(
         level=logging.DEBUG,
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
+
     car_links = []
+    page = 0
 
     while True:
-        if page == 2:
+        if page == offset:
             break
-
         paginated_url = f"{url}?page={page}"
-        logging.info(f"Обрабатываем страницу {page}: {paginated_url}")
+        logging.info(f"Обробляємо сторінку {page}: {paginated_url}")
 
         driver.get(paginated_url)
         time.sleep(3)
@@ -65,7 +66,7 @@ def parse_olx_autos(url: str, driver, page: int = 1) -> list:
 
         listings = soup.find_all("div", class_="css-1ut25fa")
         if not listings:
-            logging.info("Объявления не найдены — заканчиваем обход пагинации.")
+            logging.info("Оголошення не знайдені - закінчуємо обхід пагінації.")
             break
 
         for listing in listings:
@@ -77,7 +78,7 @@ def parse_olx_autos(url: str, driver, page: int = 1) -> list:
                     car_links.append(product_url)
 
             except Exception as e:
-                logging.error(f"Ошибка при обработке объявления: {e}")
+                logging.error(f"Помилка при обробці оголошення: {e}")
                 continue
 
         page += 1
@@ -88,7 +89,7 @@ def parse_olx_autos(url: str, driver, page: int = 1) -> list:
 def parsing_data_cars(url: str, driver) -> dict:
     logging.info(f"Обробляємо автомобіль: {url}")
     driver.get(url)
-    time.sleep(2)
+    time.sleep(1.4)
     soup = BeautifulSoup(driver.page_source, "html.parser")
     car_details = {}
 
@@ -164,15 +165,15 @@ def parsing_data_cars(url: str, driver) -> dict:
     return car_details
 
 
-def parsing_olx_cars(page: int):
+def parsing_olx_cars(offset: int):
     url = "https://www.olx.ua/uk/transport/legkovye-avtomobili/"
     driver = init_driver()
 
-    car_links = parse_olx_autos(url, driver, page=page)
+    car_links = parse_olx_autos(url, driver, offset=offset)
     logging.info(f"Found links: {len(car_links)}")
 
     car_list = []
-    for car_url in car_links[0:2]:
+    for car_url in car_links:
         details = parsing_data_cars(car_url, driver)
         if details:
             car_list.append(details)

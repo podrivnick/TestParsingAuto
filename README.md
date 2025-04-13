@@ -1,7 +1,21 @@
-# FastAPI Boilerplate With Mongo
+# FastAPI Parser
 
-A non-commercial FastAPI boilerplate, that using DI for containerization, didiator for mediators
+Test Project for parsing OLX and manipulate received data
+
+## API's
+
+* `Get /sync` - parsing data from OLX (could be long)
+* `Get /cars` - getting all cars
+* `Get /cars_id` - getting car by ID
+* `Get /cars_mark` - getting cars by Mark
+* `Get /cars_year` - getting cars by years
+* `Delete /car_delete` - deleting car by ID
+* `Post /car_create` - creating car
+* `Put /car_put` - change data car
+
 ### Installation and Running
+
+![API](images/api.png)
 
 These instructions will help you run the project.
 
@@ -18,8 +32,8 @@ ___
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/podrivnick/FastAPI-bot-backend.git
-   cd FastAPI-bot-backend
+   git clone https://github.com/podrivnick/TestParsingAuto.git
+   cd TestParsingAuto
    ```
 
 2. Install all required packages in `Requirements` section.
@@ -31,6 +45,7 @@ ___
 * `make app` - up application and database/infrastructure
 * `make app-logs` - follow the logs in app container
 * `make app-down` - down application and all infrastructure
+* `make mongo` - up database
 
 ### Specific Commands
 
@@ -38,12 +53,6 @@ ___
 * `make dbbash` - enter into postgres container bash
 * `make runtest` - run all tests
 
-___
-## Structure
-
-```plaintext
-FastAPI-bot-backend/
-```
 
 ## Technology
 + **FastAPI**

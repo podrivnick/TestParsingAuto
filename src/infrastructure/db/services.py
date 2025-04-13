@@ -3,7 +3,10 @@ from abc import (
     abstractmethod,
 )
 from dataclasses import dataclass
-from typing import Dict
+from typing import (
+    Dict,
+    List,
+)
 
 
 @dataclass
@@ -21,6 +24,10 @@ class BaseQueryCarsMongoDBService(ABC):
 
     @abstractmethod
     async def get_car_by_id(self, id_car: str) -> Dict:
+        raise NotImplementedError()
+
+    @abstractmethod
+    async def get_cars_by_mark(self, mark: str) -> List[Dict]:
         raise NotImplementedError()
 
 

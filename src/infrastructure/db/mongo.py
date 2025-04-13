@@ -53,6 +53,22 @@ class QueryCarsMongoDBService(BaseQueryCarsMongoDBService, BaseMongoDBRepository
         document = await self._collection.find_one({"_id": obj_id})
         return document
 
+    async def get_cars_by_mark(
+        self,
+        mark: str,
+    ) -> List[Dict]:
+        cursor = self._collection.find(
+            {
+                "mark": {"$regex": mark, "$options": "i"},
+            },
+        )
+
+        results = []
+        async for doc in cursor:
+            results.append(doc)
+
+        return results
+
 
 @dataclass
 class CommandCarsMongoDBService(BaseCommandCarsMongoDBService, BaseMongoDBRepository):

@@ -48,14 +48,10 @@ def init_driver():
     return driver
 
 
-def parse_olx_autos(url: str, driver, offset: int = 1) -> list:
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s - %(levelname)s - %(message)s",
-    )
-
-    car_links = []
+def parse_olx_autos(url: str, driver, offset: int = 1) -> set:
+    car_links = set()
     page = 0
+    last_page_links = None
 
     while True:
         if page == offset:
@@ -64,26 +60,31 @@ def parse_olx_autos(url: str, driver, offset: int = 1) -> list:
         logging.info(f"Обробляємо сторінку {page}: {paginated_url}")
 
         driver.get(paginated_url)
-        time.sleep(3)
+        time.sleep(0.8)
 
         soup = BeautifulSoup(driver.page_source, "html.parser")
-
         listings = soup.find_all("div", class_="css-1ut25fa")
+
         if not listings:
-            logging.info("Оголошення не знайдені - закінчуємо обхід пагінації.")
+            logging.info("Оголошення не знайдені - завершуємо обхід пагінації.")
             break
 
+        current_page_links = set()
         for listing in listings:
             try:
                 link_tag = listing.find("a", href=True)
-
                 if link_tag:
                     product_url = urljoin(url, link_tag["href"])
-                    car_links.append(product_url)
-
+                    car_links.add(product_url)
+                    current_page_links.add(product_url)
             except Exception as e:
                 logging.error(f"Помилка при обробці оголошення: {e}")
                 continue
+
+        if last_page_links is not None and current_page_links == last_page_links:
+            logging.info("Досягнуто останньої унікальної сторінки, припиняю обхід.")
+            break
+        last_page_links = current_page_links
 
         page += 1
 

@@ -23,7 +23,7 @@ def init_driver():
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--lang=uk")
 
-    # Используем webdriver-manager для автоматической загрузки нужной версии ChromeDriver
+    # Використовуємо webdriver-manager для автоматичного завантаження потрібної версії ChromeDriver
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)
 
@@ -182,7 +182,8 @@ def parsing_olx_cars(offset: int):
     logging.info(f"Found links: {len(car_links)}")
 
     car_list = []
-    for car_url in car_links:
+    for index, car_url in enumerate(car_links):
+        logging.info(f"{index} з {len(car_links)}")
         details = parsing_data_cars(car_url, driver)
         if details:
             car_list.append(details)

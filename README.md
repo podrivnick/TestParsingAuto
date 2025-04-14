@@ -18,6 +18,13 @@ Test Project for parsing OLX and manipulate received data
 
 ![API](images/api.png)
 
+## API usage example
+
+![API](images/get_cars_api.png)
+![API](images/get_cars_result.png)
+![API](images/filter_cars_api.png)
+![API](images/filter_cars_result.png)
+
 These instructions will help you run the project.
 
 ## Requirements

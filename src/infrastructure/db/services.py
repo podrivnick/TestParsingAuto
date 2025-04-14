@@ -12,7 +12,7 @@ from typing import (
 @dataclass
 class BaseQueryParserCarsMongoDBService(ABC):
     @abstractmethod
-    async def parser_cars_all_cars(self, offset: int) -> None:
+    async def parser_cars(self, offset: int) -> None:
         raise NotImplementedError()
 
 

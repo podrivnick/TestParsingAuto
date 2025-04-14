@@ -287,7 +287,7 @@ async def put_car_handler(
 async def filter_cars_handler(
     less_price: int,
     larger_year: int,
-    larger_mileage: int,
+    less_mileage: int,
     container: Container = Depends(Stub(init_container)),
 ) -> SuccessResponse[List[CarSchema]]:
     """Filtering Cars."""
@@ -298,7 +298,7 @@ async def filter_cars_handler(
             FilterCarsCommand(
                 price=less_price,
                 year=larger_year,
-                mileage=larger_mileage,
+                mileage=less_mileage,
             ),
         )
     except BaseAppException as exception:

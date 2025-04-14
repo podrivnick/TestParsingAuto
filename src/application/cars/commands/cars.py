@@ -35,9 +35,12 @@ class ParserCarsCommandHandler(CommandHandler[ParserCarsCommand, DTOCars]):
         self,
         command: ParserCarsCommand,
     ) -> Dict:
-        cars = await self.query_pasring_all_cars_service.parser_cars_all_cars(
+        cars = await self.query_pasring_all_cars_service.parser_cars(
             offset=command.offset,
         )
+        if not cars:
+            raise HTTPException(status_code=400, detail="Some problem with the parser.")
+
         original_cars = cars.copy()
 
         await self.command_save_cars_service.save_cars_from_parser(cars)
@@ -61,6 +64,9 @@ class GetAllCarsCommandHandler(CommandHandler[GetAllCarsCommand, DTOCars]):
         cars = await self.query_get_all_cars_service.get_all_cars(
             offset=command.offset,
         )
+        if not cars:
+            raise HTTPException(status_code=400, detail="Error with cars.")
+
         schemas_cars = [CarSchema(**car) for car in cars]
 
         return schemas_cars
@@ -82,6 +88,9 @@ class GetCarByIdCommandHandler(CommandHandler[GetCarByIdCommand, DTOCars]):
         car = await self.query_get_car_by_id_service.get_car_by_id(
             id_car=command.id_car,
         )
+        if car is None:
+            raise HTTPException(status_code=400, detail="Some problem with ID car.")
+
         schemas_cars = CarSchema(**car)
 
         return schemas_cars

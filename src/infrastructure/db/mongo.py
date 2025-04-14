@@ -19,7 +19,7 @@ from src.infrastructure.parser.parser_auto import parsing_olx_cars
 
 @dataclass
 class QueryParserCarsMongoDBService(BaseQueryParserCarsMongoDBService):
-    async def parser_cars_all_cars(
+    async def parser_cars(
         self,
         offset: int,
     ) -> Dict:

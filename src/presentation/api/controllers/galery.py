@@ -228,7 +228,7 @@ async def create_car_handler(
     mediator: Mediator = container.resolve(Mediator)
 
     try:
-        is_car_deleted = await mediator.handle_command(
+        is_car_created = await mediator.handle_command(
             CreatingCarCommand(car_schema=car_schema),
         )
     except BaseAppException as exception:
@@ -237,7 +237,7 @@ async def create_car_handler(
             detail={"error": exception.message},
         )
 
-    if is_car_deleted:
+    if is_car_created:
         return SuccessResponse(result="Car Succesfully Added")
 
 
@@ -259,7 +259,7 @@ async def put_car_handler(
     mediator: Mediator = container.resolve(Mediator)
 
     try:
-        is_car_deleted = await mediator.handle_command(
+        is_car_putted = await mediator.handle_command(
             PuttingCarCommand(
                 car_id=car_id,
                 car_data=car_data,
@@ -271,7 +271,7 @@ async def put_car_handler(
             detail={"error": exception.message},
         )
 
-    if is_car_deleted:
+    if is_car_putted:
         return SuccessResponse(result="Car Succesfully Changed")
 
 

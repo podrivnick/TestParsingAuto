@@ -12,6 +12,7 @@ Test Project for parsing OLX and manipulate received data
 * `Delete /car_delete` - deleting car by ID
 * `Post /car_create` - creating car
 * `Put /car_put` - change data car
+* `Get /cars_filter` - filtering cars by: year, price, mileage.
 
 ### Installation and Running
 

@@ -8,7 +8,15 @@ from typing import (
 )
 
 from bson import ObjectId
-from pydantic import BaseModel
+from pydantic import (
+    BaseModel,
+    Field,
+    model_validator,
+)
+from src.infrastructure.parser.utils import (
+    parse_mileage,
+    parse_price,
+)
 
 
 def str_objectid(obj: ObjectId) -> str:
@@ -56,14 +64,35 @@ class CarSchema:
 
 
 class CarUpdateSchema(BaseModel):
-    mark: Optional[str] = None
-    model: Optional[str] = None
-    year_created: Optional[int] = None
-    price: Optional[str] = None
-    mileage: Optional[str] = None
-    engine_type: Optional[str] = None
-    engine_capacity: Optional[str] = None
-    gear_box: Optional[str] = None
-    drive_type: Optional[str] = None
-    location: Optional[str] = None
-    url_image: Optional[str] = None
+    price: str = Field(
+        default="0 $",
+        pattern=r"^\d+(?:\s\d+)*\s*\$$",
+        description="Ціна автомобіля. Приклад: '3 099 $'. Значення за замовчуванням: '0 $'",
+    )
+    mileage: str = Field(
+        default="0 тис.км.",
+        pattern=r"^\d+(?:\s\d+)*\s*(?:тис\.?\s*км\.?)$",
+        description="Пробіг автомобіля. Приклад: '480 тис.км.'. Значення за умовчанням: '0 тис.км.'",
+    )
+    mark: Optional[str] = Field(default=None)
+    model: Optional[str] = Field(default=None)
+    year_created: Optional[int] = Field(default=None)
+    engine_type: Optional[str] = Field(default=None)
+    engine_capacity: Optional[float] = Field(default=None)
+    gear_box: Optional[str] = Field(default=None)
+    drive_type: Optional[str] = Field(default=None)
+    location: Optional[str] = Field(default=None)
+    url_image: Optional[str] = Field(default=None)
+
+    price_numeric: Optional[int] = None
+    mileage_numeric: Optional[int] = None
+
+    @model_validator(mode="after")
+    def compute_numeric_fields(self) -> "CarUpdateSchema":
+        if self.price != "0 $":
+            self.price_numeric = parse_price(self.price)
+
+        if self.mileage != "0 тис.км.":
+            self.mileage_numeric = parse_mileage(self.mileage)
+
+        return self

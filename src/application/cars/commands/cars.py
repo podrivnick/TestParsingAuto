@@ -214,7 +214,9 @@ class PuttingCarCommandHandler(CommandHandler[PuttingCarCommand, DTOCars]):
     @staticmethod
     def get_real_update_fields(car_data: CarUpdateSchema) -> dict:
         return {
-            k: v for k, v in car_data.dict().items() if v not in [None, "string", 0]
+            k: v
+            for k, v in car_data.dict().items()
+            if v not in [None, "string", "0 $", "0 тис.км.", 0]
         }
 
 
